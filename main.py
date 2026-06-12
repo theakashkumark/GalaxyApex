@@ -1,6 +1,6 @@
 from game import AlienShooter
 
-window_width,window_height = 1200,800
+window_width,window_height = 1000,700
 world_width,world_height = 1800,1200
 fps=60
 

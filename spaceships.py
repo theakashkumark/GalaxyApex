@@ -57,7 +57,7 @@ class AlienDrone:
             image = pygame.image.load(f"images/drone_{dir}.png")
             self.images[dir] = pygame.transform.scale(image,(self.size,self.size))
 
-        self.direction = 'up'
+        self.direction = 'right'
 
         self.rect = pygame.Rect(0,0,self.size,self.size)
         self.rect.center =  (self.x,self.y)
@@ -110,8 +110,6 @@ class AlienDrone:
                 self.direction='down'
             else:
                 self.direction='up'
-                
-
 
     def spawn(self):
         spawn_positions=[
@@ -122,3 +120,6 @@ class AlienDrone:
         ]
 
         return random.choice(spawn_positions)
+    
+    def draw(self,screen,camera_x,camera_y):
+        screen.blit(self.images[self.direction],(self.x-camera_x,self.y-camera_y))

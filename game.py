@@ -35,7 +35,7 @@ class AlienShooter():
 
         self.walls = walls_1
 
-        self.bg_image = pygame.transform.scale(pygame.image.load("images/background.jpg"), (self.window_width, self.window_height))
+        self.bg_image = pygame.transform.scale(pygame.image.load("images/background.jpg"), (self.world_width, self.world_height))
 
         #TO DO: Define player
         self.G_apex = GalaxyApex(self.world_width,self.world_height,walls_1)
@@ -51,13 +51,15 @@ class AlienShooter():
 
         self.multi_blaze_count = 10
         self.drone_top_speed = 5
+        self.G_apex_score = 5
         self.level_goal = 5
         self.max_drone_count = 5
         self.level = 1
         self.sound = sound
+        self.out_of_ammo_messaged_displayed = False
     
-    def fill_background(self):
-        self.screen.blit(self.bg_image,(0,0))
+    def fill_background(self,camera_x,camera_y):
+        self.screen.blit(self.bg_image,(0-camera_x,0-camera_y))
 
         level_surface = self.font.render(f"Level : {self.level}", True, (0,0,0))
         self.screen.blit(level_surface, (10,60))
@@ -67,6 +69,8 @@ class AlienShooter():
     def fire_single_blaze(self):
         blaze = SingleBlaze(self.G_apex.x,self.G_apex.y,self.G_apex.direction)
         self.blazers.append(blaze)
+
+        #TODO : add sound
         
     def fire_multi_blaze(self):
         if self.multi_blaze_count>0:
@@ -80,8 +84,18 @@ class AlienShooter():
                 blaze=MultiBlaze(self.G_apex.x,self.G_apex.y,direction,angle_offset)
                 self.blazers.append(blaze)
 
-        self.multi_blaze_count-=1
-        print('!bam bam bam')
+            self.multi_blaze_count-=1
+            self.out_of_ammo_messaged_displayed=False
+
+            print('!bam bam bam')
+
+            #TODO : add sound
+
+        else:
+            print("out of multi blaze ammo")
+            self.out_of_ammo_messaged_displayed=True
+
+
 
     def toggle_pause(self):
         #complete toggle pass method
@@ -168,10 +182,28 @@ class AlienShooter():
         camera_x = max(0, min(camera_x, self.world_width - self.window_width))
         camera_y = max(0, min(camera_y, self.world_height - self.window_height))
 
+        self.temp_drone=[]
+
+        for dron in self.drone:
+            if check_collision(dron.rect,self.blazers):
+                blazer = get_collision(dron.rect,self.blazers)
+                self.blazers.remove(blazer)
+
+            elif check_collision(dron.rect,[self.G_apex]):
+                self.G_apex_score-=1
+            
+            else:
+                self.temp_drone.append(dron)
+
+        self.drone=self.temp_drone
+
+        for dron in self.drone:
+            dron.move_towards_player(self.G_apex.x,self.G_apex.y,self.walls)
+
 
         print("Playing game....")
 
-        self.fill_background()
+        self.fill_background(camera_x,camera_y)
 
         self.G_apex.draw(self.screen,camera_x,camera_y)
 
@@ -182,6 +214,9 @@ class AlienShooter():
 
             if check_collision(blaze.rect,walls_1):
                 self.blazers.remove(blaze)
+
+        for drone in self.drone:
+            drone.draw(self.screen,camera_x,camera_y)
             
 
         #TODO : drone logic
